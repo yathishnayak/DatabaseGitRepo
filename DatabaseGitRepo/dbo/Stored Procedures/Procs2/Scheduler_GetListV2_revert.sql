@@ -754,4 +754,3 @@ INNER JOIN  FilterOrderDetail OD ON OH.Orderkey = OD.OrderKey
 	
 
 END
- 

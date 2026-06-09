@@ -10022,5 +10022,118 @@
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
+    <Build Include="dbo\Views\vw_PP_ProcessData_Century_1.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Views\vw_CBCE_ProcessData_Century_1.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="Security\db_readwrite.sql" />
+    <Build Include="Security\db_executor.sql" />
+    <Build Include="Security\db_DropDBObjects.sql" />
+    <Build Include="Security\db_CreateAlter.sql" />
+    <Build Include="Security\yathish.sql" />
+    <Build Include="Security\tmsupport.sql" />
+    <Build Include="Security\tmssupport.sql" />
+    <Build Include="Security\tktadmin.sql" />
+    <Build Include="Security\testy.sql" />
+    <Build Include="Security\TestAdmin.sql" />
+    <Build Include="Security\sumantha.sql" />
+    <Build Include="Security\shravan.sql" />
+    <Build Include="Security\shivaprasad.sql" />
+    <Build Include="Security\roshan.sql" />
+    <Build Include="Security\reethika.sql" />
+    <Build Include="Security\praveen.sql" />
+    <Build Include="Security\poojitha.sql" />
+    <Build Include="Security\PBIuser.sql" />
+    <Build Include="Security\PBIGatewayUser.sql" />
+    <Build Include="Security\pavan.sql" />
+    <Build Include="Security\nishaR.sql" />
+    <Build Include="Security\nishaL.sql" />
+    <Build Include="Security\JCT_sshettigar.sql" />
+    <Build Include="Security\JCT_sprasad.sql" />
+    <Build Include="Security\JCT_spamidi.sql" />
+    <Build Include="Security\JCT_reethika.sql" />
+    <Build Include="Security\JCT_rcrasto.sql" />
+    <Build Include="Security\JCT_ppoojary.sql" />
+    <Build Include="Security\JCT_poojitha.sql" />
+    <Build Include="Security\JCT_pkumar.sql" />
+    <Build Include="Security\JCT_pamin.sql" />
+    <Build Include="Security\JCT_NRAO.sql" />
+    <Build Include="Security\JCT_akshathk.sql" />
+    <Build Include="Security\AZUser.sql" />
+    <Build Include="Security\akshath.sql" />
+    <Build Include="Security\RoleMemberships.sql" />
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Robinson_New.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Robinson_bkp.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Robinson.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_MelroseTest.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Melrose_NotProcessed_Rosh.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Melrose_NotProcessed.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Melrose_Delete.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Melrose_BKP20240620.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Melrose_BKP.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Melrose.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_KHNN.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Flexport_shiva.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Flexport_prev.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_Flexport.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_EDRAY.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_DHL.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\TMS_integration_InsertOrder_CNB.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="Security\Permissions.sql" />
   </ItemGroup>
 </Project>
