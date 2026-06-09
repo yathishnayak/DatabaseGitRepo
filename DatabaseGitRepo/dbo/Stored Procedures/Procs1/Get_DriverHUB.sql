@@ -1,0 +1,7 @@
+﻿CREATE PROCEDURE Get_DriverHUB
+
+AS
+
+BEGIN
+	SELECT DriverHubKey,DriverHubName FROM DriverHUB
+END

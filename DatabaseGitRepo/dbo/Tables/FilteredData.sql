@@ -1,0 +1,28 @@
+﻿CREATE TABLE [dbo].[FilteredData] (
+    [InvoiceKey]             INT             NOT NULL,
+    [OrderKey]               INT             NULL,
+    [Custkey]                INT             NOT NULL,
+    [StatusKey]              SMALLINT        NOT NULL,
+    [ReasoncodeKey]          INT             NULL,
+    [AprovedReasonCodeKey]   INT             NULL,
+    [IsInvoiceApproved]      BIT             NULL,
+    [InvoiceNo]              VARCHAR (50)    NOT NULL,
+    [InvoiceDate]            DATE            NOT NULL,
+    [IsPrinted]              BIT             NULL,
+    [PrintedUserKey]         INT             NULL,
+    [PaymentRecdUserKey]     INT             NULL,
+    [PaymentRecdDate]        DATETIME        NULL,
+    [PrintedDate]            DATETIME        NULL,
+    [IsRevised]              BIT             NULL,
+    [RevisionDate]           DATETIME        NULL,
+    [BrokerRefNo]            VARCHAR (50)    NULL,
+    [InvoiceAmount]          DECIMAL (18, 2) NOT NULL,
+    [IsPaymentReceived]      BIT             NULL,
+    [RevisionUserKey]        INT             NULL,
+    [InvoiceApprovedUserKey] INT             NULL,
+    [CustomerNote]           VARCHAR (3000)  NULL,
+    [InternalNote]           VARCHAR (3000)  NULL,
+    [CustApproved]           BIT             NULL,
+    [CreateUserKey]          INT             NOT NULL
+);
+

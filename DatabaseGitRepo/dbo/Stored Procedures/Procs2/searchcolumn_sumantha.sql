@@ -1,0 +1,11 @@
+﻿CREATE PROCEDURE [dbo].[searchcolumn_sumantha]
+(
+@column_name VARCHAR(100)
+) AS
+BEGIN
+
+SELECT TABLE_NAME 
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE COLUMN_NAME LIKE @column_name; 
+
+END

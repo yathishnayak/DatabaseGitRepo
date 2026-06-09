@@ -1,0 +1,156 @@
+﻿
+
+--[Get_ContainerDispatchDetailSearchNew] @Status='4:', @Weekday ='FUT', @Customer='', @OrderNo = '', @ContainerNo='', @LegType = '',  @ContainerType='',@PickUpDateFrom = '2019-12-31', @PickUpDateTo = '2049-12-31'
+--  MSKU123457
+-- [Get_ContainerDispatchDetailSearchNew] @ContainerNo = 'SHIV1111120'
+--   [Get_ContainerDispatchDetailSearch] @Status = '1:'
+-- [Get_ContainerDispatchDetailSearchNew] @Weekday ='', @Customer='', @OrderNo = '', @ContainerNo='', @LegType = '', @Status='', @ContainerType='',@PickUpDateFrom = '2022-08-01', @PickUpDateTo = '2022-10-07'
+CREATE PROCEDURE [dbo].[Get_ContainerDispatchDetailSearch] 
+@Weekday		CHAR(3)='',
+@Customer		VARCHAR(50)='',
+@OrderNo		VARCHAR(20)='',
+@ContainerNo	VARCHAR(20)='',
+@LegType		VARCHAR(200)='',
+@Status			VARCHAR(100)='',
+@ContainerType	VARCHAR(100)='',
+@PickUpDateFrom	DATE='01/01/2020',
+@PickUpDateTo	DATE='12/31/2099',
+@PickupTypeKey  SMALLINT=0,
+@BookingNo		varchar(50) = ''
+AS
+BEGIN	
+	SET NOCOUNT ON;
+	SET FMTONLY OFF;
+
+	DECLARE @OrderDetailKey INT
+	DECLARE @StartDate		DATETIME
+	DECLARE @EndDate		DATETIME
+	DECLARE @PickUpFrom		VARCHAR(50)
+	DECLARE @ContCmnt       VARCHAR(2000)
+
+	SET @StartDate=CAST(GETDATE() AS DATE)
+	SET @EndDate= DATEADD(d,7,@StartDate)
+	SET @PickUpFrom= ( SELECT PickUpType from PickUpType WHERE PickupTypeKey=@PickupTypeKey)
+	
+	select Status as StatusKey
+	into #OrderDetailStatus
+	from OrderDetailStatus
+	where Description in ('Schedule Confirmed','Dispatch InProgress','Dispatch OnHold')
+
+
+	select Value as StatusKey into #Status from dbo.Fn_SplitParamCol(@status)
+
+	--select * from #Status
+
+		SELECT ShortComment,orderdetailkey,Comment INTO #ContTypes
+		FROM (
+				SELECT 
+						OC.orderdetailkey,[value] as 'Comment',LEFT([value],3) AS ShortComment
+				FROM [dbo].[Comment] C  WITH (NOLOCK) 
+					CROSS APPLY STRING_SPLIT(C.[description],',')  
+					INNER JOIN 
+						[dbo].[OrderDetailComments] OC   WITH (NOLOCK) ON  OC.CommentKey = C.CommentKey					
+				WHERE OC.OrderDetailKey IN 	( SELECT OrderDetailKey FROM OrderDetail WHERE STATUS NOT IN (1,11) )
+			) A 
+		INNER JOIN ContainerTypes CT WITH (NOLOCK) ON A.Comment = CT.TypeID	
+
+
+		SELECT	  WeekNum =  CASE WHEN RT.PickupDateFrom BETWEEN @StartDate AND @EndDate THEN  datepart(WEEKDAY, RT.PickupDateFrom ) 
+						WHEN RT.PickupDateFrom < convert(Date,@StartDate) THEN -9 ELSE 9 END	,
+			[WeekDay] =  CASE WHEN RT.PickupDateFrom BETWEEN @StartDate AND @EndDate THEN  LEFT(DATENAME(DW,RT.PickupDateFrom ) ,3)
+						WHEN RT.PickupDateFrom < convert(Date,@StartDate) THEN 'PAS' ELSE 'FUT' END	,
+			--ISNULL(MIN(PickupDateFrom) OVER( PARTITION BY OD.OrderDetailKey Order by OD.OrderDetailKey ),'12:00') as ContainerPickUpTime,
+			 CONVERT(VARCHAR(10),CAST(DATEADD(HOUR, DATEDIFF(HOUR, 0, PickupDateFrom), 0) AS TIME),0) AS ContainerPickUpTime,
+			OD.ContainerNo,OrderType, OD.DropOffDate,
+			isnull(SR.AddrName,'') AS Origin, 
+			isnull(DT.AddrName,'') AS FinalDestination,--Origin,FinalDestination,
+			OD.OrderDetailKey,OD.OrderKey,OrderNo,CustName,RTS.Description as StatusName	, 
+			convert(bit,isnull(dbo.FN_IsOrderDetailComplete(OD.OrderDetailKey),0)) as ReadytoRelease, 
+			isnull(BookingNo,'') as BookingNo,
+			ISNULL(CAdr.Address1,'')+', '+ISNULL(CAdr.City,'')+', '+
+				ISNULL(CAdr.State,'')+', '+ISNULL(CAdr.ZipCode,'')+', '+ISNULL(CAdr.Country,'') as  CustAddress, 
+			OH.OrderTypeKey,
+			CONVERT(BIGINT,ISNULL(OD.CurrentLegNo,0) ) AS NextLeg	
+			,CAST(ISNULL(OD.CurrentLegNo,0) AS VARCHAR(50))+' of '+CAST(od.TotalLegs AS VARCHAR(50)) AS CurLeg
+			,isnull(SR.AddrName,'') AS FromLocation,
+			isnull(DT.AddrName,'') AS ToLocation,
+			isnull(DR.DriverID + ' : ' + DR.FirstName+' '+ISNULL(DR.LastName,''),'')  AS DriverName,
+			Dr.DriverKey,
+			isnull(RT.ScheduledPickupDate,'01-01-1900') as ScheduledPickupDate,
+			isnull(RT.ScheduledArrival,'01-01-1900') as ScheduledArrival,
+			RT.RouteKey
+			,isnull(SR.AddrName,'') AS S_AddrName,
+			isnull(SR.Address1,'') AS S_Address1, 
+			isnull(SR.City,'') AS S_City,
+			isnull(sR.State,'') as s_State ,
+			isnull(SR.ZipCode,'') AS S_ZipCode,
+			isnull(SR.Country,'') AS S_Country
+			,isnull(DT.AddrName,'') AS D_AddrName,
+			isnull(DT.Address1,'') AS D_Address1,
+			isnull(DT.City,'') AS D_City,
+			isnull(DT.State,'') AS D_State, 
+			isnull(DT.ZipCode,'') AS D_ZipCode,
+			isnull(DT.Country,'') AS D_Country,
+			isnull(RT.PickupDateFrom,'01-01-1900')  as PickupDateFrom,
+			isnull(RT.PickupDateTo,'01-01-1900') as PickupDateTo,
+			ISNULL(HZ.IsHazmat,0)  AS IsHazmat, isnull(CDC.DocumentCount,0) as DocumentCount,
+			isnull(od.IsEmpty,0) as IsEmpty,
+			isnull(pt.PickUpType,'') as PickUpType,
+			isnull(s.Description,'') as ContainerSize, 
+			isnull(od.VesselETA,'01-01-1900') as VesselETA,
+			isnull(BillOfLading,'') as BillOfLading,
+			ContainerTypes= '',
+			--STUFF(( 
+			--	SELECT ', '+ ShortComment 
+			--	FROM #ContTypes 
+			--	WHERE OrderDetailKey=A.OrderDetailKey
+			--	FOR XML PATH('')), 1, 2, ''),
+			od.isStreetTurn,
+			ISNULL(u2.UserName,'') AS StreetTurnSetUser,
+			OD.StreetTurnSetDate,
+			OD.ISLINKED,
+			OD.LinkedContainerNo,
+			OD.LinkedOrderDetailKey
+		
+		
+	FROM dbo.OrderDetail OD   WITH (NOLOCK) 
+		INNER JOIN  dbo.OrderHeader OH	  WITH (NOLOCK) ON OH.OrderKey=OD.OrderKey
+		INNER JOIN  dbo.Customer CUS	  WITH (NOLOCK) ON CUS.CustKey=OH.CustKey
+		INNER JOIN  dbo.OrderType OT	  WITH (NOLOCK) ON OT.OrderTypeKey=OH.OrderTypeKey
+		INNER JOIN  dbo.[Routes] RT		  WITH (NOLOCK) ON RT.OrderDetailKey=OD.OrderDetailKey
+		INNER JOIN  dbo.Leg L			  WITH (NOLOCK) ON RT.LegKey=L.LegKey
+		INNER JOIN  dbo.LegType LT		  WITH (NOLOCK) ON LT.LegtypeKey=L.LegTypeKey
+		INNER JOIN  dbo.RouteStatus RTS   WITH (NOLOCK) ON RTS.[Status]=RT.[Status]	
+		LEFT JOIN   dbo.[Address] CAdr	  WITH (NOLOCK) ON CAdr.Addrkey=OH.BillToAddrKey
+		LEFT JOIN   dbo.[Address] SRR	  WITH (NOLOCK) ON SRR.Addrkey=RT.SourceAddrkey
+		LEFT JOIN   dbo.[Address] DTR	  WITH (NOLOCK) ON DTR.Addrkey=RT.DestinationAddrkey
+		LEFT JOIN   dbo.[Address] SR	  WITH (NOLOCK) ON SR.Addrkey=OD.SourceAddrKey
+		LEFT JOIN   dbo.[Address] DT	  WITH (NOLOCK) ON DT.Addrkey=OD.DestinationAddrKey
+		LEFT JOIN   dbo.Driver DR		  WITH (NOLOCK) ON DR.DriverKey=RT.DriverKey
+		LEFT JOIN   dbo.Chassis CH		  WITH (NOLOCK) ON CH.chassisKey=RT.ChassisKey	
+		--LEFT JOIN   dbo.OrderDetailStatus ODS   WITH (NOLOCK) ON ODS.[Status]=OD.[Status]
+		LEFT JOIN   dbo.ContainerSize S	  WITH (NOLOCK) ON S.ContainerSizeKey=OD.ContainerSizeKey	
+		Left JOIN OrderDetailStatus RS ON OD.Status = RS.Status
+		Left join dbo.PickUpType PT   WITH (NOLOCK) on L.PickupTypeKey = PT.PickupTypeKey
+		LEFT JOIN dbo.ContainerDocumentCount CDC   WITH (NOLOCK) ON OD.OrderDetailKey = CDC.OrderDetailKey
+		inner join #OrderDetailStatus ODS on ODS.StatusKey = OD.Status
+		lEFT jOIN [USER] u2 WITH (NOLOCK) ON OD.StreetTurnSetUser = U2.UserKey
+		leFT jOIN (
+				 SELECT DISTINCT orderdetailkey, 1 AS IsHazmat FROM #ContTypes WHERE Comment='Hazard'
+		) HZ ON od.OrderDetailKey = HZ.OrderDetailKey
+	WHERE OD.Status not in (1,11) and  RT.RouteKey = OD.CurrentRouteKey  
+	And (isnull(@Status,'') = '' OR OD.ContainerStatusKey in (select StatusKey from #Status))
+	AND	(@PickUpDateFrom	IS NULL OR RT.PickupDateFrom	IS NULL OR RT.PickupDateFrom>=@PickUpDateFrom)
+	AND (@PickUpDateTo		IS NULL OR RT.PickupDateFrom	IS NULL OR RT.PickupDateFrom<=@PickUpDateTo)	
+	AND (@Weekday  IS NULL OR @Weekday=''  OR 
+		 LEFT( (CASE WHEN RT.PickupDateFrom BETWEEN @StartDate AND @EndDate THEN upper(DATENAME(DW,RT.PickupDateFrom ) )
+					 WHEN RT.PickupDateFrom<@StartDate THEN 'PAS'ELSE 'FUT' END),3)= @Weekday)
+		AND (@Customer IS NULL OR @Customer='' OR CUS.CustName LIKE '%' + @Customer + '%')
+		AND (@OrderNo  IS NULL OR @OrderNo=''  OR OH.OrderNo LIKE '%' + @OrderNo + '%')
+		AND (@ContainerNo  IS NULL OR @ContainerNo=''  OR OD.ContainerNo LIKE '%' + @ContainerNo + '%')
+		AND	(@PickUpDateFrom	IS NULL OR RT.PickupDateFrom	IS NULL OR RT.PickupDateFrom>=@PickUpDateFrom)
+		AND (@PickUpDateTo		IS NULL OR RT.PickupDateFrom	IS NULL OR RT.PickupDateFrom<=@PickUpDateTo)		
+		AND (@PickupTypeKey		IS NULL OR @PickupTypeKey=0	OR L.PickupTypeKey = @PickupTypeKey)	
+		AND (isnull(@BookingNo,'') = '' OR OH.BookingNo like '%' + @BookingNo + '%')
+	ORDER BY ScheduledPickupDate , ContainerNo
+END

@@ -1,0 +1,27 @@
+﻿CREATE TABLE [dbo].[VoucherHeaderDMLTracker] (
+    [VoucherKey]        INT             NOT NULL,
+    [VoucherNo]         VARCHAR (50)    NOT NULL,
+    [VoucherDate]       DATETIME        NOT NULL,
+    [BillToAddrKey]     INT             NOT NULL,
+    [VoucherAmount]     DECIMAL (18, 2) NOT NULL,
+    [DueDate]           DATE            NULL,
+    [IsPaymentApproved] BIT             NOT NULL,
+    [IsPaid]            BIT             NOT NULL,
+    [CompanyKey]        SMALLINT        NOT NULL,
+    [StatusKey]         SMALLINT        NOT NULL,
+    [CreateDate]        DATETIME        NOT NULL,
+    [CreateUserKey]     INT             NOT NULL,
+    [UpdateuserKey]     INT             NULL,
+    [UpdateDate]        DATETIME        NULL,
+    [PmtApprovedUser]   INT             NULL,
+    [DriverNote]        VARCHAR (3000)  NULL,
+    [InternalNote]      VARCHAR (3000)  NULL,
+    [PaidUserKey]       INT             NULL,
+    [PaidDate]          DATETIME        NULL,
+    [IsRevised]         BIT             NULL,
+    [RevisionUserKey]   INT             NULL,
+    [RevisionDate]      DATETIME        NULL,
+    [Action]            VARCHAR (20)    NULL,
+    [ActionDate]        DATETIME        NULL
+);
+

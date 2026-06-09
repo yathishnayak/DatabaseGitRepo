@@ -1,0 +1,56 @@
+﻿CREATE TABLE [dbo].[Routes_Log] (
+    [RouteKey]                 INT             NULL,
+    [OrderDetailKey]           INT             NULL,
+    [OrderKey]                 INT             NULL,
+    [LegKey]                   SMALLINT        NULL,
+    [LegNo]                    SMALLINT        NULL,
+    [SourceAddrKey]            INT             NULL,
+    [PickupDateFrom]           SMALLDATETIME   NULL,
+    [PickupDateTo]             SMALLDATETIME   NULL,
+    [CutOffDate]               DATETIME        NULL,
+    [DeliveryDateFrom]         SMALLDATETIME   NULL,
+    [DeliveryDateTo]           SMALLDATETIME   NULL,
+    [AppointmentNo]            VARCHAR (500)   NULL,
+    [ConfirmationNo]           VARCHAR (50)    NULL,
+    [LastFreeDay]              DATETIME        NULL,
+    [SwitchTo]                 VARCHAR (50)    NULL,
+    [PortWaitingTimeFrom]      DATETIME        NULL,
+    [PortWaitingTimeTo]        DATETIME        NULL,
+    [CustomerWaitingTimeFrom]  DATETIME        NULL,
+    [CustomerWaitingTimeTo]    DATETIME        NULL,
+    [ChassisNo]                VARCHAR (50)    NULL,
+    [ChassisType]              VARCHAR (30)    NULL,
+    [TruckNo]                  VARCHAR (50)    NULL,
+    [FromLocation]             VARCHAR (255)   NULL,
+    [ToLocation]               VARCHAR (255)   NULL,
+    [DestinationAddrKey]       INT             NULL,
+    [EstimatedDistanceInMiles] DECIMAL (18, 2) NULL,
+    [EstimatedTravelTime]      DECIMAL (5, 2)  NULL,
+    [Status]                   SMALLINT        NULL,
+    [DriverKey]                INT             NULL,
+    [ScheduledPickupDate]      DATETIME        NULL,
+    [ScheduledArrival]         DATETIME        NULL,
+    [ScheduledDeparture]       DATETIME        NULL,
+    [ActualDeparture]          DATETIME        NULL,
+    [ActualArrival]            DATETIME        NULL,
+    [OdometerAtSource]         SMALLINT        NULL,
+    [OdometerAtDestination]    SMALLINT        NULL,
+    [DriverCommentKey]         INT             NULL,
+    [SchedulerCommentKey]      INT             NULL,
+    [ChassisKey]               INT             NULL,
+    [CompanyKey]               SMALLINT        NULL,
+    [CreateUserKey]            INT             NULL,
+    [UpdateUserKey]            INT             NULL,
+    [CreateDate]               DATETIME        NULL,
+    [LastUpdateDate]           DATETIME        NULL,
+    [ActionDate]               DATETIME        CONSTRAINT [DF_Routes_Log_LogDate] DEFAULT (getdate()) NULL,
+    [ActionType]               VARCHAR (50)    NULL,
+    [ActionUser]               VARCHAR (50)    NULL
+);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IDX_12691_12690_Routes_Log]
+    ON [dbo].[Routes_Log]([ActionType] ASC, [RouteKey] ASC, [Status] ASC)
+    INCLUDE([ActionDate]);
+

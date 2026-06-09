@@ -1,0 +1,25 @@
+﻿CREATE TABLE [dbo].[PrepayInvoiceHeader] (
+    [PPInvoiceKey]         BIGINT          IDENTITY (1, 1) NOT FOR REPLICATION NOT NULL,
+    [PPInvoiceNo]          VARCHAR (20)    NULL,
+    [PPInvoiceDate]        DATETIME        NOT NULL,
+    [PPInvoiceAmount]      DECIMAL (18, 4) NULL,
+    [OrderKey]             INT             NULL,
+    [CustomerKey]          INT             NULL,
+    [BillToAddressKey]     INT             NULL,
+    [PPInvoiceSentDate]    DATETIME        NULL,
+    [PPInvoiceConfirmDate] DATETIME        NULL,
+    [CreatedDate]          DATETIME        NULL,
+    [CreatedUserKey]       INT             NULL,
+    [UpdateDate]           DATETIME        NULL,
+    [UpdatedUserKey]       INT             NULL,
+    [OrderNo]              VARCHAR (50)    NULL,
+    [StatusKey]            INT             NULL,
+    [InternalNotes]        VARCHAR (2000)  NULL,
+    [CustomerNotes]        VARCHAR (2000)  NULL,
+    [RevisionDate]         DATETIME        NULL,
+    [RevisionUserKey]      INT             NULL,
+    [InternalNote]         VARCHAR (MAX)   NULL,
+    [InvoiceType]          VARCHAR (10)    CONSTRAINT [DF_PrepayInvoiceHeader_InvoiceType] DEFAULT ('P') NULL,
+    PRIMARY KEY CLUSTERED ([PPInvoiceKey] ASC)
+);
+

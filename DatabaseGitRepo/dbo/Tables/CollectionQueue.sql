@@ -1,0 +1,25 @@
+﻿CREATE TABLE [dbo].[CollectionQueue] (
+    [CollectionRecordKey] INT           IDENTITY (1, 1) NOT NULL,
+    [InvoiceKey]          INT           NULL,
+    [InvoiceNo]           VARCHAR (50)  NULL,
+    [InvoiceDate]         DATETIME      NULL,
+    [CustomerKey]         INT           NULL,
+    [CustomerType]        BIT           NULL,
+    [ContainerCount]      INT           NULL,
+    [DestinationCity]     VARCHAR (100) NULL,
+    [BrokerRefNo]         VARCHAR (20)  NULL,
+    [InvoiceAmount]       DECIMAL (18)  NULL,
+    [Payments]            DECIMAL (18)  NULL,
+    [Balance]             DECIMAL (18)  NULL,
+    [StatusCodeKey]       INT           NULL,
+    [OrderDetailKey]      INT           NULL,
+    [InvoicerKey]         INT           NULL,
+    [Containers]          VARCHAR (300) NULL,
+    [PreviousStatusKey]   INT           NULL,
+    [CreatedUser]         INT           NULL,
+    [CreatedDate]         DATETIME      NULL,
+    [UpdatedUser]         INT           NULL,
+    [UpdatedDate]         DATETIME      NULL,
+    [BookingNo]           VARCHAR (30)  NULL
+);
+

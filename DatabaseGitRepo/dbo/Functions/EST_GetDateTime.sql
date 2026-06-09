@@ -1,0 +1,6 @@
+﻿CREATE FUNCTION [dbo].[EST_GetDateTime]()
+RETURNS datetime
+AS
+BEGIN
+	RETURN(SELECT CAST(SYSDATETIMEOFFSET() AT TIME ZONE 'Eastern Standard Time' AS datetime)); 
+END

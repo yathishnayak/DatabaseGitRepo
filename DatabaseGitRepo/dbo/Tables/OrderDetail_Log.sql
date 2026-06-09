@@ -1,0 +1,50 @@
+﻿CREATE TABLE [dbo].[OrderDetail_Log] (
+    [OrderDetailKey]     INT             NOT NULL,
+    [OrderKey]           INT             NULL,
+    [ContainerNo]        VARCHAR (20)    NOT NULL,
+    [ConfirmationNo]     VARCHAR (30)    NULL,
+    [ContainerSizeKey]   SMALLINT        NULL,
+    [Chassis]            VARCHAR (20)    NULL,
+    [SealNo]             VARCHAR (20)    NULL,
+    [Weight]             DECIMAL (18, 2) NULL,
+    [ApptDateFrom]       DATE            NULL,
+    [ApptDateTo]         DATE            NULL,
+    [Status]             SMALLINT        NULL,
+    [StatusDate]         DATETIME        NULL,
+    [HoldReasonKey]      SMALLINT        NULL,
+    [LastFreeDay]        DATETIME        NULL,
+    [HoldDate]           DATETIME        NULL,
+    [ReturnDate]         DATE            NULL,
+    [ReturnTime]         TIME (7)        NULL,
+    [PickupTime]         VARCHAR (8)     NULL,
+    [DropOffTime]        VARCHAR (8)     NULL,
+    [PickupDate]         DATETIME        NULL,
+    [DropOffDate]        DATETIME        NULL,
+    [CutOffDate]         DATETIME        NULL,
+    [RouteKey]           INT             NULL,
+    [ActualPickupTime]   VARCHAR (8)     NULL,
+    [ActualDropOffTime]  VARCHAR (8)     NULL,
+    [ActualPickupDate]   DATETIME        NULL,
+    [ActualDropOffDate]  DATETIME        NULL,
+    [ContainerID]        VARCHAR (50)    NULL,
+    [IsHazardus]         BIT             NULL,
+    [IsOverWeight]       BIT             NULL,
+    [IsTriaxle]          BIT             NULL,
+    [NeedtobeScaled]     BIT             NULL,
+    [CommentKey]         INT             NULL,
+    [CreateUserKey]      INT             NULL,
+    [UpdateUserKey]      INT             NULL,
+    [SourceAddrKey]      INT             NULL,
+    [DestinationAddrKey] INT             NULL,
+    [CreateDate]         DATETIME        NULL,
+    [LastUpdateDate]     DATETIME        NULL,
+    [LegTypeKey]         INT             NULL,
+    [ActionType]         VARCHAR (50)    NULL,
+    [ActionUser]         VARCHAR (50)    NULL
+);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_OrderDetail_Log_OrderDetailKey_CreateDate_ActionType_B22F2]
+    ON [dbo].[OrderDetail_Log]([OrderDetailKey] ASC, [CreateDate] ASC, [ActionType] ASC) WITH (FILLFACTOR = 90);
+

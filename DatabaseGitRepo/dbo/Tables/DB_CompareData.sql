@@ -1,0 +1,12 @@
+﻿CREATE TABLE [dbo].[DB_CompareData] (
+    [TABLE_SCHEMA]     VARCHAR (100) NULL,
+    [TABLE_NAME]       VARCHAR (100) NULL,
+    [ORDINAL_POSITION] VARCHAR (100) NULL,
+    [COLUMN_NAME]      VARCHAR (100) NULL,
+    [FULL_DATA_TYPE]   VARCHAR (100) NULL,
+    [ISPROC]           BIT           NULL,
+    [CREATE_DATE]      DATETIME      NULL,
+    [MODIFY_DATE]      DATETIME      NULL,
+    [DBNAME]           VARCHAR (20)  NULL
+);
+

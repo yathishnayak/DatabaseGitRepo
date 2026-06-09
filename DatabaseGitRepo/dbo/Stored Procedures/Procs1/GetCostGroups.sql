@@ -1,0 +1,6 @@
+﻿
+CREATE PROCEDURE [dbo].[GetCostGroups]
+AS
+BEGIN
+	SELECT DISTINCT [Group] FROM COSTACC_FinalDataOutput FOR JSON PATH;
+END

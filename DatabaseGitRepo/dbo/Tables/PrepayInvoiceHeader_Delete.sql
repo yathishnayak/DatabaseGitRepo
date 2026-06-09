@@ -1,0 +1,25 @@
+﻿CREATE TABLE [dbo].[PrepayInvoiceHeader_Delete] (
+    [PPInvoiceKey]         BIGINT          NULL,
+    [PPInvoiceNo]          NVARCHAR (20)   NULL,
+    [PPInvoiceDate]        DATETIME        NULL,
+    [PPInvoiceAmount]      DECIMAL (18, 4) NULL,
+    [OrderKey]             INT             NULL,
+    [CustomerKey]          INT             NULL,
+    [BillToAddressKey]     INT             NULL,
+    [PPInvoiceSentDate]    DATETIME        NULL,
+    [PPInvoiceConfirmDate] DATETIME        NULL,
+    [CreatedDate]          DATETIME        NULL,
+    [CreatedUserKey]       INT             NULL,
+    [UpdateDate]           DATETIME        NULL,
+    [UpdatedUserKey]       INT             NULL,
+    [OrderNo]              NVARCHAR (50)   NULL,
+    [StatusKey]            INT             NULL,
+    [InternalNotes]        NVARCHAR (200)  NULL,
+    [CustomerNotes]        NVARCHAR (2000) NULL,
+    [RevisionDate]         DATETIME        NULL,
+    [RevisionUserKey]      INT             NULL,
+    [InternalNote]         NVARCHAR (MAX)  NULL,
+    [DeletedBy]            INT             NULL,
+    [DeletedDate]          DATETIME        NULL
+);
+

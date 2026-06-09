@@ -1,0 +1,26 @@
+﻿CREATE TABLE [dbo].[Data_Delete] (
+    [ActivityID]          INT           NULL,
+    [CreatedDate]         DATETIME      NULL,
+    [Yardname]            VARCHAR (100) NULL,
+    [ContainerNo]         VARCHAR (50)  NULL,
+    [ContainerDesc]       VARCHAR (20)  NULL,
+    [SafeGateChassisNo]   VARCHAR (50)  NULL,
+    [SafegareDriverID]    VARCHAR (20)  NULL,
+    [RouteKey]            INT           NOT NULL,
+    [FromLocation]        VARCHAR (50)  NULL,
+    [ToLocation]          VARCHAR (50)  NULL,
+    [ScheduledPickupDate] DATETIME      NULL,
+    [ActualPickupDate]    DATETIME      NULL,
+    [LegID]               VARCHAR (50)  NULL,
+    [ActualArrival]       DATETIME      NULL,
+    [ActualDeparture]     DATETIME      NULL,
+    [SourceYard]          VARCHAR (20)  NOT NULL,
+    [DestinationYard]     VARCHAR (20)  NOT NULL,
+    [ChassisKey]          INT           NULL,
+    [ChassisNo]           VARCHAR (50)  NULL,
+    [DriverKey]           INT           NULL,
+    [TMSYardID]           SMALLINT      NULL,
+    [DestyardID]          SMALLINT      NOT NULL,
+    [SourceYardID]        SMALLINT      NOT NULL
+);
+

@@ -1,0 +1,377 @@
+﻿/*
+DECLARE 
+	@UserKey INT = 1144,
+	@JSONString NVARCHAR(MAX)= '{"Weekday" : "", "Customer" : "", "OrderNo" : "", "ContainerNo" : '', "LegType" : "", "StatusKey" : "", "PickUpDateFrom" : "", "PickUpDateTo" : "", "PickupTypeKey" : }',
+	@Status	BIT = 0, 
+	@IsDebug BIT = 0, 
+	@Reason	VARCHAR(100)=''
+	EXEC [Get_DispatchstatusForDashboard_V3] @UserKey,@JSONString,@Status OUTPUT,@Reason OUTPUT, @IsDebug
+	SELECT @Status AS Status, @Reason AS Reason
+*/
+
+/*
+DECLARE 
+	@UserKey INT = 1144,
+	@JSONString NVARCHAR(MAX)= '{"PageNo":1,"PageSize":10,"Ascending":true,"SearchText":"","DriverKey":0,"MarketLocationKey":0,"CarrierStatus":0,"Dispatcher":0,"IsDriverApp":0,"EmptyvLoaded":0,"Urgent":false,"SearchCriteriaKey":0,"PickupDateFrom":"2020-01-01T00:00:00.000Z","PickupDateTo":"2050-01-01T00:00:00.000Z"}',
+	@Status	BIT = 0, 
+	@IsDebug BIT = 0, 
+	@Reason	VARCHAR(100)=''
+	EXEC [Get_DispatchstatusForDashboard_V3] @UserKey,@JSONString,@Status OUTPUT,@Reason OUTPUT, @IsDebug
+	SELECT @Status AS Status, @Reason AS Reason
+*/
+CREATE PROCEDURE [dbo].[Get_DispatchstatusForDashboard_V3]
+(
+	@UserKey		INT = 1144,
+	@JSONString		NVARCHAR(MAX) = '',
+	@Status			BIT	= 0 OUTPUT,
+	@Reason			VARCHAR(1000) = '' OUTPUT,
+	@IsDebug		BIT = 0
+)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	SET FMTONLY OFF;
+
+	IF (ISNULL(LTRIM(RTRIM(@JSONString)) ,'') = '')
+	BEGIN
+		SET		@Status = 0
+		SET		@Reason = 'Parameters not found'
+		RETURN
+	END	
+
+	DECLARE
+		@Weekday		CHAR(3)='',
+		@Customer		VARCHAR(50)='',
+		@OrderNo		VARCHAR(20)='',
+		@ContainerNo	VARCHAR(20)='',
+		@LegType		VARCHAR(200)='',
+		@StatusKey		VARCHAR(100)='',
+		@PickUpDateFrom	DATE='01/01/2020',
+		@PickUpDateTo	DATE='12/31/2099',
+		@PickupTypeKey  SMALLINT=0
+
+	SELECT
+		@Weekday				=	Weekday			,
+		@Customer			    =	Customer		,
+		@OrderNo				=	OrderNo			,
+		@ContainerNo			=	ContainerNo		,
+		@LegType				=	LegType			,
+		@StatusKey				=	StatusKey		,
+		@PickUpDateFrom			=	PickUpDateFrom	,
+		@PickUpDateTo			=	PickUpDateTo	,
+		@PickupTypeKey			=	PickupTypeKey 
+	FROM OPENJSON(@JSONString)
+	WITH
+	(
+		Weekday				CHAR(3)				'$.Weekday',		
+		Customer			VARCHAR(50)			'$.Customer',	
+		OrderNo				VARCHAR(20)			'$.OrderNo',		
+		ContainerNo			VARCHAR(20)			'$.ContainerNo',	
+		LegType				VARCHAR(200)		'$.LegType',		
+		StatusKey			VARCHAR(100)		'$.StatusKey',		
+		PickUpDateFrom		DATE				'$.PickUpDateFrom',	
+		PickUpDateTo		DATE				'$.PickUpDateTo',	
+		PickupTypeKey		SMALLINT			'$.PickupTypeKey'
+	)
+
+	
+	DECLARE @OrderDetailKey INT
+	DECLARE @StartDate	DATETIME
+	DECLARE @EndDate	DATETIME
+	DECLARE @PickUpFrom VARCHAR(50)
+
+	SET @StartDate=CAST(GETDATE() AS DATE)
+	SET @EndDate=DATEADD(SECOND,59,DATEADD(MINUTE,59,DATEADD(hh,23,DATEADD(DD,6,@StartDate))))
+	SET @PickUpFrom= ( SELECT PickUpType from PickUpType WITH (NOLOCK) WHERE PickupTypeKey=@PickupTypeKey)
+
+	;WITH    AllDays
+          AS ( SELECT   @StartDate AS [Date], 1 AS [OrderBy]
+               UNION ALL
+               SELECT   DATEADD(DAY, 1, [Date]), [OrderBy] + 1
+               FROM     AllDays  
+               WHERE    [Date] < @EndDate )
+     SELECT [Date], [OrderBy] INTO #Weekdayorder
+     FROM   AllDays  WITH (NOLOCK)
+
+	 DELETE FROM #Weekdayorder WHERE Orderby=8
+
+	CREATE Table #ContainerStatus
+	(
+		StatusName VARCHAR(50),
+		RouteKey INT,
+		OrderDetailKey INT
+	)
+
+	CREATE Table #Status
+	(
+		StatusKey INT
+	)
+
+	CREATE Table #LegType
+	(
+		LegKey SMALLINT
+	)
+
+	TRUNCATE TABLE #Status
+	TRUNCATE TABLE #LegType
+	TRUNCATE TABLE #ContainerStatus
+
+	INSERT INTO #Status (StatusKey)
+	SELECT [Value] FROM Fn_SplitParamCol(@StatusKey)
+
+	IF (SELECT COUNT(1) FROM #Status)=0
+	BEGIN
+		INSERT INTO #Status (StatusKey)
+		SELECT [Status] FROM dbo.RouteStatus WITH (NOLOCK) where IsActive=1 
+	END
+
+	INSERT INTO #LegType (LegKey)
+	SELECT [Value] FROM Fn_SplitParamCol(@LegType)
+
+	SELECT DISTINCT FromLocation  INTO #FromLoc
+	FROM dbo.Leg  WITH (NOLOCK)
+	WHERE LegKey IN ( SELECT LegKey FROM #LegType )
+
+	SELECT RT.[Description] AS StatusName INTO #StatusName
+	FROM #Status A 
+	INNER JOIN dbo.RouteStatus RT WITH (NOLOCK) ON RT.[Status]=A.StatusKey	
+
+	SELECT OD.ContainerNo, OT.OrderType ,OD.DropOffDate,
+		DSour.AddrName AS Origin,DDest.AddrName AS FinalDestination,
+		L.LegNo,L.[LegID],RT.PickupDateFrom --AS PickupDate 
+		,RT.PickupDateTo
+		,RT.SwitchTo,
+		RT.DeliveryDateFrom AS DeliveryDate ,Sour.City AS FromLocation,Dest.city AS ToLocation,	
+		ISNULL(DR.FirstName,'')+' '+ISNULL(DR.LastName,'') AS DriverName,RT.ChassisNo,RT.ChassisType,
+		RT.ActualDeparture AS ActualPickup,RT.ActualArrival AS ActualDelDate,
+		CASE WHEN RT.PickupDateFrom BETWEEN @StartDate AND @EndDate THEN  DATENAME(DW,RT.PickupDateFrom ) 
+		WHEN RT.PickupDateFrom<@StartDate THEN 'Past'ELSE 'Future' END AS [WeekDay],
+		CONVERT(VARCHAR(10), CAST(DATEADD(HOUR, DATEDIFF(HOUR, 0, RT.PickupDateFrom), 0) AS TIME),0) AS PickupTime,
+		DR.DriverKey, RT.RouteKey,OD.OrderDetailKey,OD.OrderKey, RTS.[Description] AS StatusName, 
+		RT.[Status] AS StatusKey, OH.OrderNo, CUS.CustName,OH.BookingNo,
+		ISNULL(CAdr.Address1,'')+', '+ISNULL(CAdr.City,'')+', '+
+		ISNULL(CAdr.State,'')+', '+ISNULL(CAdr.ZipCode,'')+', '+ISNULL(CAdr.Country,'') AS CustAddress	,
+		OT.OrderTypeKey--,L.FromLocation as filterloc,L.LegKey  
+		INTO #DispatchData1
+	FROM OrderDetail OD  WITH (NOLOCK)
+		INNER JOIN  dbo.OrderHeader OH WITH (NOLOCK)	ON OH.OrderKey=OD.OrderKey
+		INNER JOIN  dbo.Customer CUS WITH (NOLOCK)	ON CUS.CustKey=OH.CustKey
+		INNER JOIN  dbo.OrderType OT WITH (NOLOCK)		ON OT.OrderTypeKey=OH.OrderTypeKey
+		INNER JOIN  dbo.[Routes] RT WITH (NOLOCK)		ON RT.OrderDetailKey=OD.OrderDetailKey
+		INNER JOIN  dbo.Leg L WITH (NOLOCK)			ON RT.LegKey=L.LegKey
+		INNER JOIN  dbo.LegType LT WITH (NOLOCK)		ON LT.LegtypeKey=L.LegTypeKey
+		INNER JOIN  dbo.RouteStatus RTS WITH (NOLOCK) ON RTS.[Status]=RT.[Status]	
+		LEFT JOIN   dbo.[Address] CAdr WITH (NOLOCK)	ON CAdr.Addrkey=OH.BillToAddrKey
+		LEFT JOIN   dbo.[Address] Sour WITH (NOLOCK)	ON Sour.Addrkey=RT.SourceAddrkey
+		LEFT JOIN   dbo.[Address] Dest WITH (NOLOCK)	ON Dest.Addrkey=RT.DestinationAddrkey
+		LEFT JOIN   dbo.[Address] DSour WITH (NOLOCK)	ON DSour.Addrkey=OD.SourceAddrKey
+		LEFT JOIN   dbo.[Address] DDest WITH (NOLOCK)	ON DDest.Addrkey=OD.DestinationAddrKey
+		LEFT JOIN   dbo.Driver DR WITH (NOLOCK)		ON DR.DriverKey=RT.DriverKey
+		LEFT JOIN   dbo.Chassis CH WITH (NOLOCK)		ON CH.chassisKey=RT.ChassisKey	
+		LEFT JOIN   dbo.OrderDetailStatus ODS WITH (NOLOCK) ON ODS.[Status]=OD.[Status]		
+	WHERE ( ODS.[Description] IN ('Schedule Confirmed','Dispatch InProgress','Dispatch OnHold') ) --
+	--AND ( RTS.[Description]<>'Completed' ) --AND RT.pickupDate >= @StartDate
+		--AND RTS.[Status] IN ( SELECT StatusKey FROM #Status )
+		AND (@Weekday  IS NULL OR @Weekday=''  OR 
+		 LEFT( (CASE WHEN RT.PickupDateFrom BETWEEN @StartDate AND @EndDate THEN  DATENAME(DW,RT.PickupDateFrom ) 
+					 WHEN RT.PickupDateFrom<@StartDate THEN 'Past'ELSE 'Future' END),3)= @Weekday)
+		AND (@Customer IS NULL OR @Customer='' OR CUS.CustName LIKE '%' + @Customer + '%')
+		AND (@OrderNo  IS NULL OR @OrderNo=''  OR OH.OrderNo LIKE '%' + @OrderNo + '%')
+		AND (@ContainerNo  IS NULL OR @ContainerNo=''  OR OD.ContainerNo LIKE '%' + @ContainerNo + '%')
+		AND (@LegType  IS NULL OR @LegType=''  OR L.LegKey IN ( SELECT LegKey FROM #LegType) )
+		--AND (@LegType  IS NULL OR @LegType=''  OR L.FromLocation IN ( SELECT FromLocation FROM #FromLoc) )	
+		AND	(@PickUpDateFrom	IS NULL OR RT.PickupDateFrom	IS NULL OR RT.PickupDateFrom>=@PickUpDateFrom)
+		AND (@PickUpDateTo		IS NULL OR RT.PickupDateFrom	IS NULL OR RT.PickupDateFrom<=@PickUpDateTo)		
+		AND (@PickupTypeKey		IS NULL OR @PickupTypeKey=0	OR L.PickupTypeKey = @PickupTypeKey)
+		--AND (@PickupTypeKey		IS NULL OR @PickupTypeKey=0	OR L.FromLocation = @PickUpFrom)	
+		--********************************************************************************************
+
+		--select * from #DispatchData1
+		--return
+
+		SELECT OrderDetailKey,StatusName,LegNo,RouteKey,DriverKey INTO #OrderStautsbyLeg
+		FROM #DispatchData1
+		ORDER BY OrderDetailKey,LegNo		
+
+		SELECT DISTINCT OrderDetailKey INTO #OrdeDtlKey FROM #OrderStautsbyLeg		
+		/*
+		WHILE ( SELECT COUNT(1) FROM #OrdeDtlKey )>0
+		BEGIN
+				SET @OrderDetailKey=0
+				SET @OrderDetailKey= ( SELECT TOP 1 OrderDetailKey FROM #OrdeDtlKey ORDER BY OrderDetailKey )				
+				
+				IF (	SELECT COUNT(1) 
+						FROM
+						(
+							SELECT COUNT(1) AS Cnt FROM #OrderStautsbyLeg 
+							WHERE OrderDetailKey=@OrderDetailKey 
+							GROUP BY StatusName
+						)R
+				 )=1
+				BEGIN	
+					IF ( SELECT COUNT(1) FROM #OrderStautsbyLeg WHERE OrderDetailKey=@OrderDetailKey AND StatusName='Leg Completed' )>0
+					BEGIN
+						INSERT INTO #ContainerStatus (StatusName,RouteKey,OrderDetailKey)
+						SELECT StatusName,MAX(RouteKey) AS RouteKey ,@OrderDetailKey
+						FROM #OrderStautsbyLeg 
+						WHERE OrderDetailKey=@OrderDetailKey
+						GROUP BY StatusName
+					END
+					ELSE
+					BEGIN
+						INSERT INTO #ContainerStatus (StatusName,RouteKey,OrderDetailKey)
+						SELECT StatusName,MIN(RouteKey) AS RouteKey ,@OrderDetailKey
+						FROM #OrderStautsbyLeg 
+						WHERE OrderDetailKey=@OrderDetailKey
+						GROUP BY StatusName
+					END
+				END
+				ELSE				
+				BEGIN	
+					INSERT INTO #ContainerStatus (StatusName,RouteKey,OrderDetailKey)
+					SELECT NULL,MIN(RouteKey) AS RouteKey,@OrderDetailKey 
+					FROM #OrderStautsbyLeg 
+					WHERE StatusName<>'Leg Completed' AND OrderDetailKey=@OrderDetailKey
+					--IF (	SELECT COUNT(1) 
+					--		FROM #OrderStautsbyLeg 
+					--		WHERE OrderDetailKey=@OrderDetailKey AND StatusName='Ready To Complete'
+					--   )>0
+					--BEGIN					
+					--	INSERT INTO #ContainerStatus (StatusName,RouteKey,OrderDetailKey)
+					--	SELECT NULL,MIN(RouteKey) AS RouteKey,@OrderDetailKey 
+					--	FROM #OrderStautsbyLeg 
+					--	WHERE StatusName<>'Ready To Complete' AND OrderDetailKey=@OrderDetailKey						
+					--END					
+					--ELSE
+					--BEGIN						
+					--	INSERT INTO #ContainerStatus (StatusName,RouteKey,OrderDetailKey)
+					--	SELECT NULL,MIN(RouteKey) AS RouteKey,@OrderDetailKey 
+					--	FROM #OrderStautsbyLeg 
+					--	WHERE OrderDetailKey=@OrderDetailKey						
+					--END
+				END			
+			DELETE FROM #OrdeDtlKey WHERE OrderDetailKey=@OrderDetailKey
+		END
+		*/
+
+		select OrderDetailKey, count(1) as NoOfStatus 
+		INTO #OrderStatusCount
+		from (
+		select distinct Orderdetailkey, StatusName from #OrderStautsbyLeg
+		) a Group by OrderDetailKey
+
+		INSERT INTO #ContainerStatus (StatusName, RouteKey,OrderDetailKey)
+		select distinct StatusName, max(Routekey), A.OrderDetailKey 
+		from #OrderStatusCount A
+		inner join #OrderStautsbyLeg B on A.OrderDetailKey = B.OrderDetailKey
+		where NoOfStatus = 1 and B.StatusName = 'Leg Completed'
+		group by StatusName, A.OrderDetailKey
+
+		INSERT INTO #ContainerStatus (StatusName, RouteKey,OrderDetailKey)
+		select distinct '', min(Routekey), A.OrderDetailKey 
+		from #OrderStatusCount A
+		inner join #OrderStautsbyLeg B on A.OrderDetailKey = B.OrderDetailKey
+		where NoOfStatus > 1 and B.StatusName <> 'Leg Completed'
+		group by  A.OrderDetailKey
+
+		INSERT INTO #ContainerStatus (StatusName, RouteKey,OrderDetailKey)
+		select distinct StatusName, min(Routekey), A.OrderDetailKey 
+		from #OrderStatusCount A
+		inner join #OrderStautsbyLeg B on A.OrderDetailKey = B.OrderDetailKey
+		where NoOfStatus = 1 and B.StatusName <> 'Leg Completed'
+		group by StatusName, A.OrderDetailKey
+
+		UPDATE A
+		SET A.StatusName= F.StatusName		
+		FROM #ContainerStatus A 
+		INNER JOIN #OrderStautsbyLeg F ON A.OrderDetailKey = F.OrderDetailKey and F.RouteKey=A.RouteKey	
+		where A.StatusName = ''		   
+	
+		UPDATE A
+		SET A.StatusName=S.StatusName,A.PickUpDateFrom=D.PickupDateFrom---,A.[WeekDay]= DATENAME(DW,D.PickupDate )
+		FROM #DispatchData1 A 
+			LEFT JOIN #ContainerStatus S ON S.OrderDetailKey=A.OrderDetailKey
+			LEFT JOIN #DispatchData1 D ON D.RouteKey=S.RouteKey
+
+		--UPDATE #DispatchData1
+		--SET PickupDateFrom=NULL,[WeekDay]=NULL		
+		--WHERE StatusName='Ready To Complete'
+
+		--UPDATE #DispatchData1
+		--SET StatusName='Ready To Complete'
+		--WHERE StatusName='Completed'
+
+		UPDATE #DispatchData1
+		SET [WeekDay]=  CASE WHEN PickupDateFrom BETWEEN @StartDate AND @EndDate THEN  DATENAME(DW,PickupDateFrom ) 
+						WHEN PickupDateFrom<@StartDate THEN 'Past'ELSE 'Future' END	
+	
+--***********************************************************
+		SELECT 
+			ContainerNo,OrderType,DropOffDate,Origin,FinalDestination,LegNo,LegID,PickupDateFrom,PickupDateTo,SwitchTo,DeliveryDate
+			,FromLocation,ToLocation,DriverName,ChassisNo,ChassisType,ActualPickup,ActualDelDate,
+			UPPER(LEFT([WeekDay],3)) AS [WeekDay],PickupTime,			
+			OrderBy AS WeekNum,
+			DriverKey,RouteKey,OrderDetailKey,OrderKey,StatusName,StatusKey,OrderNo,CustName,--ConfirmationNo,
+			MIN(PickupDateFrom) OVER( PARTITION BY OrderDetailKey Order by OrderDetailKey ) AS ContainerPickUpTime
+			,BookingNo--,AppointmentNo
+			,CustAddress, OrderTypeKey --,  FromLocationKey,  ToLocationKey
+			INTO #DispatchData
+		FROM #DispatchData1
+			LEFT JOIN #Weekdayorder W ON CAST(W.[DATE] AS DATE)=CAST(PickupDateFrom AS DATE)
+		ORDER BY [WeekDay],OrderKey,OrderDetailKey
+
+		UPDATE #DispatchData
+		SET WeekNum=9
+		WHERE [WeekDay]='FUT'
+
+		UPDATE #DispatchData
+		SET WeekNum=-9
+		WHERE [WeekDay]='PAS'
+	 
+		SELECT DISTINCT OrderDetailKey INTO #IncompleteCont
+		FROM #DispatchData 
+		WHERE ISNULL(ChassisNo ,'')='' OR ISNULL(DriverName,'')='' OR ActualDelDate IS NULL		
+
+		SELECT DISTINCT
+			WeekNum,
+			[WeekDay],CONVERT(VARCHAR(10),CAST(DATEADD(HOUR, DATEDIFF(HOUR, 0, ContainerPickUpTime), 0) AS TIME),0) AS ContainerPickUpTime,
+			ContainerNo,OrderType,DropOffDate,Origin,FinalDestination,		
+			A.OrderDetailKey,OrderKey,OrderNo,CustName,	StatusName,
+			CASE WHEN IT.OrderDetailKey IS NULL AND StatusName<> 'Leg Completed' THEN 1 ELSE 0 END AS ReadytoRelease,
+			BookingNo,--ConfirmationNo,AppointmentNo,
+			CustAddress , OrderTypeKey --,  FromLocationKey,  ToLocationKey
+			INTO #DispatchDataFinal
+		FROM #DispatchData A			
+			LEFT JOIN #IncompleteCont IT ON IT.OrderDetailKey=A.OrderDetailKey	
+
+		SELECT	WeekNum,[WeekDay],ContainerPickUpTime,ContainerNo,OrderType,DropOffDate,Origin,FinalDestination,
+				OrderDetailKey,OrderKey,OrderNo,CustName,StatusName	,			
+				ReadytoRelease,BookingNo,--ConfirmationNo,AppointmentNo,
+				CustAddress, OrderTypeKey INTO #temptbl1 --,  FromLocationKey,  ToLocationKey
+		FROM #DispatchDataFinal	
+		WHERE( StatusName IN ( SELECT StatusName FROM #StatusName ) OR 1=1)		
+		ORDER BY WeekNum, [WeekDay],ContainerPickUpTime, ContainerNo
+		
+		SELECT A.[Description] AS StatusName ,[Status],COUNT(ContainerNo) AS DispatchCount,'I' as [Level] INTO #DashBoarData1
+		FROM dbo.RouteStatus A WITH (NOLOCK)
+			LEFT JOIN #temptbl1 F ON F.StatusName=A.Description
+		WHERE  (StatusName IN ( SELECT StatusName FROM #StatusName ) OR 1=1 ) 		
+		GROUP BY A.[Description],[Status]
+		UNION ALL
+		SELECT 'Total Containers' ,0,COUNT(ContainerNo) AS DispatchCount,'S' as Level
+		FROM dbo.RouteStatus A WITH (NOLOCK)
+			LEFT JOIN #temptbl1 F ON F.StatusName=A.Description
+		WHERE StatusName IN ( SELECT StatusName FROM #StatusName ) OR 1=1 		
+		
+		SELECT A.StatusName,A.[Status],A.DispatchCount,A.[Level],ISNULL(B.OrderBy ,50) AS OrderBy INTO #DashBoarData
+		FROM #DashBoarData1 A
+		LEFT JOIN dbo.RouteStatus B ON B.[Description]=A.StatusName
+
+		SELECT StatusName,[Status],DispatchCount,[Level] 
+		FROM #DashBoarData
+		ORDER BY OrderBy
+		FOR JSON PATH
+
+		SET @Status = 1
+		SET @Reason = 'Success'
+END

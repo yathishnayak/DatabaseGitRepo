@@ -1,0 +1,7 @@
+﻿CREATE FUNCTION [dbo].[Fn_DatetoEST](@Date DATETIME)  
+RETURNS Datetime 
+BEGIN  
+RETURN(
+		SELECT DATEADD(HOUR, 7, CONVERT(varchar(20),@date,120))
+	  )  
+END

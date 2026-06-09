@@ -1,0 +1,27 @@
+﻿CREATE TABLE [dbo].[Sell_DrayBaseSpotTariff_History] (
+    [MarketKey]         INT             NULL,
+    [TerminalKey]       INT             NULL,
+    [City]              VARCHAR (50)    NULL,
+    [State]             VARCHAR (20)    NULL,
+    [ZipCode]           VARCHAR (10)    NULL,
+    [ZoneKey]           INT             NULL,
+    [DrayBaseValue]     DECIMAL (18, 2) NULL,
+    [SMB_Margin]        DECIMAL (18, 2) NULL,
+    [SMB_MarginValue]   DECIMAL (18, 2) NULL,
+    [SMB_DrayBaseRate]  DECIMAL (18, 2) NULL,
+    [SMB_FSF]           DECIMAL (18, 2) NULL,
+    [SMB_FSFValue]      DECIMAL (18, 2) NULL,
+    [SMB_DraybaseTotal] DECIMAL (18, 2) NULL,
+    [SMB_NetRevenue]    DECIMAL (18, 2) NULL,
+    [ENT_Margin]        DECIMAL (18, 2) NULL,
+    [ENT_MarginValue]   DECIMAL (18, 2) NULL,
+    [ENT_DrayBaseRate]  DECIMAL (18, 2) NULL,
+    [ENT_FSF]           DECIMAL (18, 2) NULL,
+    [ENT_FSFValue]      DECIMAL (18, 2) NULL,
+    [ENT_DraybaseTotal] DECIMAL (18, 2) NULL,
+    [ENT_NetRevenue]    DECIMAL (18, 2) NULL,
+    [DateCreated]       DATETIME        NULL,
+    [UserCreated]       INT             NULL,
+    [TruckType]         VARCHAR (50)    NULL
+);
+

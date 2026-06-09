@@ -1,0 +1,120 @@
+﻿CREATE TABLE [dbo].[Gnosis_Integration_Container] (
+    [DataKey]                           INT            IDENTITY (1, 1) NOT FOR REPLICATION NOT NULL,
+    [RecordKey]                         INT            NULL,
+    [UUID]                              VARCHAR (50)   NULL,
+    [Container_number]                  VARCHAR (50)   NULL,
+    [Container_journey_start_key]       VARCHAR (50)   NULL,
+    [Seal_no]                           VARCHAR (50)   NULL,
+    [Container_type]                    VARCHAR (50)   NULL,
+    [Length]                            VARCHAR (50)   NULL,
+    [Weight]                            VARCHAR (50)   NULL,
+    [Empty_out_dt]                      VARCHAR (50)   NULL,
+    [In_gate_dt]                        VARCHAR (50)   NULL,
+    [Early_receive_dt]                  VARCHAR (50)   NULL,
+    [Cut_off_dt]                        VARCHAR (50)   NULL,
+    [Out_gate_dt]                       VARCHAR (50)   NULL,
+    [Port_eta_dt]                       VARCHAR (50)   NULL,
+    [Gnosis_vessel_eta_dt]              VARCHAR (50)   NULL,
+    [Gnosis_estimated_discharge_dt]     VARCHAR (50)   NULL,
+    [Gnosis_rail_eta_dt]                VARCHAR (50)   NULL,
+    [Vessel_eta_dt]                     VARCHAR (50)   NULL,
+    [Vessel_eta_dt_history]             NVARCHAR (MAX) NULL,
+    [Vessel_etd_dt]                     VARCHAR (50)   NULL,
+    [Vessel_ata_dt]                     VARCHAR (50)   NULL,
+    [Vessel_atd_dt]                     VARCHAR (50)   NULL,
+    [Discharged_dt]                     VARCHAR (50)   NULL,
+    [Empty_returned_dt]                 VARCHAR (50)   NULL,
+    [Pod_locode]                        VARCHAR (50)   NULL,
+    [Pod_city]                          VARCHAR (50)   NULL,
+    [Pod_terminal_name]                 VARCHAR (50)   NULL,
+    [Pod_terminal_firms_code]           VARCHAR (50)   NULL,
+    [Pol_locode]                        VARCHAR (50)   NULL,
+    [Pol_city]                          VARCHAR (50)   NULL,
+    [Pol_terminal_name]                 VARCHAR (50)   NULL,
+    [Pol_terminal_firms_code]           VARCHAR (50)   NULL,
+    [Por_locode]                        VARCHAR (50)   NULL,
+    [Por_city]                          VARCHAR (50)   NULL,
+    [Ocean_carrier_name]                VARCHAR (50)   NULL,
+    [Ocean_carrier_scac]                VARCHAR (50)   NULL,
+    [Mother_vessel]                     VARCHAR (50)   NULL,
+    [Mother_vessel_imo]                 VARCHAR (50)   NULL,
+    [Mother_voyage]                     VARCHAR (50)   NULL,
+    [Motherload_dt]                     VARCHAR (50)   NULL,
+    [Current_vessel]                    VARCHAR (50)   NULL,
+    [Current_vessel_imo]                VARCHAR (50)   NULL,
+    [First_vessel]                      VARCHAR (50)   NULL,
+    [First_vessel_imo]                  VARCHAR (50)   NULL,
+    [Location_at_terminal]              VARCHAR (50)   NULL,
+    [Is_railing]                        VARCHAR (50)   NULL,
+    [Rail_eta_dt]                       VARCHAR (50)   NULL,
+    [Rail_ata_dt]                       VARCHAR (50)   NULL,
+    [Rail_departed_dt]                  VARCHAR (50)   NULL,
+    [Rail_discharged_dt]                VARCHAR (50)   NULL,
+    [Rail_terminal]                     VARCHAR (50)   NULL,
+    [Rail_terminal_firms_code]          VARCHAR (50)   NULL,
+    [Rail_notify_dt]                    VARCHAR (50)   NULL,
+    [Pickup_number]                     VARCHAR (50)   NULL,
+    [Available_dt]                      VARCHAR (50)   NULL,
+    [Final_dest_locode]                 VARCHAR (50)   NULL,
+    [Final_dest_city]                   VARCHAR (50)   NULL,
+    [Last_free_demurrage_day_dt]        VARCHAR (50)   NULL,
+    [Last_free_detention_day_dt]        VARCHAR (50)   NULL,
+    [Estd_last_free_demurrage_day_dt]   VARCHAR (50)   NULL,
+    [Demurrage_amount]                  VARCHAR (50)   NULL,
+    [Estd_demurrage_amount]             VARCHAR (50)   NULL,
+    [Estd_last_free_detention_day_dt]   VARCHAR (50)   NULL,
+    [Estd_detention_amount]             VARCHAR (50)   NULL,
+    [Carrier_release_dt]                VARCHAR (50)   NULL,
+    [Customs_clearance_dt]              VARCHAR (50)   NULL,
+    [Available_for_pickup]              VARCHAR (50)   NULL,
+    [Loaded_on_vessel_dt]               VARCHAR (50)   NULL,
+    [Holds]                             NVARCHAR (MAX) NULL,
+    [Pickup_appointment_dt]             VARCHAR (50)   NULL,
+    [Updated_dt]                        VARCHAR (50)   NULL,
+    [Chassis_number]                    VARCHAR (50)   NULL,
+    [Mbl]                               NVARCHAR (MAX) NULL,
+    [Customer_tag]                      VARCHAR (50)   NULL,
+    [Carrier_contract]                  VARCHAR (50)   NULL,
+    [Custom_detention_demurrage_calc]   NVARCHAR (MAX) NULL,
+    [Transshipments]                    NVARCHAR (MAX) NULL,
+    [Import_drayage]                    NVARCHAR (MAX) NULL,
+    [Purchase_orders]                   NVARCHAR (MAX) NULL,
+    [Container_customer_fields]         NVARCHAR (MAX) NULL,
+    [Rail_milestones]                   NVARCHAR (MAX) NULL,
+    [Line_items_fulfilled]              NVARCHAR (MAX) NULL,
+    [Distribution_center]               VARCHAR (50)   NULL,
+    [Drayage_carrier]                   VARCHAR (50)   NULL,
+    [gnosis_estimated_demurrage_amount] VARCHAR (50)   NULL,
+    [RailOutGateDate]                   VARCHAR (50)   NULL,
+    CONSTRAINT [PK_Gnosis_Integration_Container] PRIMARY KEY CLUSTERED ([DataKey] ASC)
+);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Ind_Gnosis_base_UUID_UpdatedDt]
+    ON [dbo].[Gnosis_Integration_Container]([UUID] ASC)
+    INCLUDE([Updated_dt]) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Gnosis_Integration_Container_RecordKey_UUID]
+    ON [dbo].[Gnosis_Integration_Container]([RecordKey] ASC, [UUID] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IDX_11093_11092_Gnosis_Integration_Container]
+    ON [dbo].[Gnosis_Integration_Container]([Container_number] ASC)
+    INCLUDE([Updated_dt]) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Gnosis_Integration_Container_UUID]
+    ON [dbo].[Gnosis_Integration_Container]([UUID] ASC)
+    INCLUDE([Available_for_pickup], [Updated_dt]);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Gnosis_Integration_Container_UUID_2]
+    ON [dbo].[Gnosis_Integration_Container]([UUID] ASC)
+    INCLUDE([Empty_returned_dt], [Updated_dt]);
+
